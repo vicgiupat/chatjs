@@ -21,5 +21,5 @@ io.on('connection', socket =>{
 		console.log(data)
 	});
 });
-
+console.log("teste");
 server.listen(3000);
