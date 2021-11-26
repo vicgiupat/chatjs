@@ -16,6 +16,7 @@
 	});
 
 	$('#chat').submit(function(event) {
+		event.preventDefault();
 
 		var author = $('input[name=username]').val();  //ATRIBUI UMA VARIAVEL QUE RECEBE O VALOR DO FORMULÁRIO "NOME"
 		var message =$('input[name=message]').val();   //ATRIBUI UMA VARIAVEL QUE RECEBE O VALOR DO FORMULÁRIO "MESSAGE"	       	 
@@ -28,12 +29,6 @@
 			renderMessage(messageObject);
 
 			socket.emit('sendMessage', messageObject); 
-		}  	
+		}    	
 	});
-
-	$('#btn-sbm').click(function(){
-		$('#input_message').val(''); 
-	})
-
-
 
