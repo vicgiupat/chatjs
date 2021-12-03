@@ -1,0 +1,31 @@
+{
+  "name": "chatjs",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "ejs": "^3.1.6",
+    "express": "^4.17.1",
+    "express-generator": "^4.16.1",
+    "mongodb": "^4.2.1",
+    "mongoose": "^6.0.14",
+    "nodemon": "^2.0.15",
+    "socket.io": "^4.4.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vicgiupat/chatjs.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/vicgiupat/chatjs/issues"
+  },
+  "homepage": "https://github.com/vicgiupat/chatjs#readme"
+}
