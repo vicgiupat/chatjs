@@ -5,9 +5,10 @@ const session = require('express-session');
 const app = express();
 const server = require('http').createServer(app); 			//DECLARA PROTOCOLO HTTP
 const io = require('socket.io')(server);					//DECLARA PROTOCOLO WSS - - > WEB SOCKET SERVER
+const bcrypt = require('bcrypt');
+const salt_round = "10";
 
-
-require('./auth')(passport);
+/*require('./auth')(passport);
 app.use(session({
 	secret: '123',
 	resave: false,
@@ -15,7 +16,7 @@ app.use(session({
 	cookie: {maxAge: 30 * 60 * 1000}
 }))
 app.use(passport.initialize());
-app.use(passport.session());
+app.use(passport.session());*/
 
 		  			
 
@@ -39,15 +40,19 @@ app.get('/', async (req, res) => {
 	res.render('index', { docs });
 });
 
+
+/* GET Login page. */
 app.get('/login', (req, res) => {
 	res.render('login');
 })
+
+/* GET Cadastro page. */
 
 app.get('/cadastro', (req, res) => {
 	res.render('cadastro', { title: 'Cadastro de usuário: chat Serramar' })
 });
 
-app.get('/login', (req, res, next) => {
+/*app.get('/login', (req, res, next) => {
 	if (req.query.fail)
 		res.render('login', { message: 'Usuário e/ou senha incorretos!' });
 	else
@@ -59,27 +64,34 @@ app.post('/login',
 		sucessRedirect: 'index',
 		failureRedirect: '/login?fail=true'
 	})
-)
+)*/
+
+
 
 
 app.post('/cadastro', async (req, res) => {
-	const nome		= req.body.nome;
-	const sobrenome = req.body.sobrenome;
-	const email		= req.body.email;
-	const senha		= req.body.senha;
-	const c_senha	= req.body.c_senha;
+
+	bcrypt.hash(req.body.senha, salt_round).then( async function (hashedPassword) {
+		let data = {
+			nome: req.body.nome,
+			sobrenome: req.body.sobrenome,
+			email: req.body.email,
+			senha: hashedPassword,
+			c_senha: req.body.c_senha
+		}
 
 	const db = require('./db');
 	const Users = db.Mongoose.model('users', db.UserSchema, 'users');
-	const usuario = new Users({ nome, sobrenome, email, senha, c_senha });
+	const usuario = new Users({ data });
+
 
 	try {
-		await usuario.save();
-		res.redirect("/");
+	await  usuario.save();
+		res.redirect("/login");
 	} catch(err) {
 		console.log(err)
 	}
-
+	})
 });
 
 /*app.use('/', (req, res) =>{									//DEFINE QUE O ENDEREÇO RAIZ DO SERVIDOR RETORNA A PAGINA INDEX.HTML
