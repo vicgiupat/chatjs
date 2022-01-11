@@ -36,6 +36,17 @@
 	renderDataHora(message)
    })
 
+/*$('#cadastro').submit(function (event) {
+
+	var senha = $('input[name = senha]');
+	var c_senha = $('input[name = c_senha]');
+
+	if (senha != c_senha) {
+		document.write("ERRADO")
+	}
+
+})*/
+
 	$('#chat').submit(function(event) {
 		event.preventDefault();
 

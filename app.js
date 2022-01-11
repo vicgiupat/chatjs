@@ -1,24 +1,12 @@
 const express = require('express');
 const path = require('path');
-const passport = require('passport');
-const session = require('express-session');
 const app = express();
 const server = require('http').createServer(app); 			//DECLARA PROTOCOLO HTTP
 const io = require('socket.io')(server);					//DECLARA PROTOCOLO WSS - - > WEB SOCKET SERVER
 const bcrypt = require('bcrypt');
-const salt_round = "10";
+const jwt = require('jsonwebtoken');
 
-/*require('./auth')(passport);
-app.use(session({
-	secret: '123',
-	resave: false,
-	saveUninitialized: false,
-	cookie: {maxAge: 30 * 60 * 1000}
-}))
-app.use(passport.initialize());
-app.use(passport.session());*/
 
-		  			
 
 
 app.use(express.static(path.join(__dirname, 'public')));  	//DEFINE PASTA ONDE VAI FICAR OS ARQUIVOS PUBLICO  - - > HTML, EJS
@@ -38,10 +26,11 @@ app.get('/', async (req, res) => {
 
 	const docs = await Users.find({}).lean().exec();
 	res.render('index', { docs });
-});
+});''
 
 
 /* GET Login page. */
+
 app.get('/login', (req, res) => {
 	res.render('login');
 })
@@ -52,51 +41,36 @@ app.get('/cadastro', (req, res) => {
 	res.render('cadastro', { title: 'Cadastro de usuário: chat Serramar' })
 });
 
-/*app.get('/login', (req, res, next) => {
-	if (req.query.fail)
-		res.render('login', { message: 'Usuário e/ou senha incorretos!' });
-	else
-		res.render('login', { message: null })
-});
-
-app.post('/login',
-	passport.authenticate('local', {
-		sucessRedirect: 'index',
-		failureRedirect: '/login?fail=true'
-	})
-)*/
-
-
-
-
+/*POST CADASTRO PAGE*/
 app.post('/cadastro', async (req, res) => {
+	 
+	const { nome, sobrenome, email, senha, c_senha } = req.body
 
-	bcrypt.hash(req.body.senha, salt_round).then( async function (hashedPassword) {
-		let data = {
-			nome: req.body.nome,
-			sobrenome: req.body.sobrenome,
-			email: req.body.email,
-			senha: hashedPassword,
-			c_senha: req.body.c_senha
-		}
 
+	//CRIPTOGRAFA E ENVIA PARA O BD A SENHA INSERIDA NO BODY DA APLICAÇÃO
+	const senhaHash = await bcrypt.hash(req.body.senha, 10)	
+	
 	const db = require('./db');
 	const Users = db.Mongoose.model('users', db.UserSchema, 'users');
-	const usuario = new Users({ data });
+	const usuario = new Users({ nome, sobrenome, email, senhaHash }); 
 
-
-	try {
-	await  usuario.save();
-		res.redirect("/login");
-	} catch(err) {
-		console.log(err)
+	//CONFERE SE O EMAIL JA ESTA EM USO
+	const usuarioExistente = await Users.findOne({ email: email })
+	if (usuarioExistente) {
+		return res.status(402).json({ msg: 'E-mail ja esta em uso!!' })
 	}
-	})
-});
 
-/*app.use('/', (req, res) =>{									//DEFINE QUE O ENDEREÇO RAIZ DO SERVIDOR RETORNA A PAGINA INDEX.HTML
-	res.render('index');
-});*/
+	//COMPARA SE AS SENHAS CONFEREM OU NÃO
+	if (c_senha !== senha) {
+		return res.status(404).json({ msg: 'As senhas não conferem!!' })
+	}
+		try {
+			usuario.save();
+			res.redirect("/login");
+		} catch (err) {
+			console.log(err)
+	}
+});
 
 let messages = [];
 

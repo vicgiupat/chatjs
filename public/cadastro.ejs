@@ -21,7 +21,7 @@
     <div class="logo"> <img src="https://www.serramarshopping.com.br/img/logo-serra-round.png" alt=""> </div>
     <div class="text-center mt-4 name"> Crie seu Cadstro aqui!</div>
 
-    <form action="/cadastro" method="POST" class="p-3 mt-3" autocomplete = "off">
+    <form action="/cadastro" method="POST" class="p-3 mt-3" autocomplete = "off" id = "cadastro">
 
         <div class="form-field d-flex align-items-center"> <span class="far fa-user"></span> <label for="Nome"><input type="text"       name="nome"      id="Nome"           placeholder="Nome"></label> </div>
         <div class="form-field d-flex align-items-center"> <span class="fas fa-key"></span>  <input type="text"       name="sobrenome" id="Sobrenome"      placeholder="sobrenome"></div>
@@ -32,5 +32,7 @@
         <button type = "submit" class="btn mt-3">Cadastrar</button>
     </form>
 </div>
+
+<script type="text/javascript" src="js/script.js"></script>
 </body>
 </html>
