@@ -5,6 +5,9 @@ const app = express();
 const server = require('http').createServer(app); 			//DECLARA PROTOCOLO HTTP
 const io = require('socket.io')(server);					//DECLARA PROTOCOLO WSS - - > WEB SOCKET SERVER
 const bcrypt = require('bcrypt');
+const cookieParser = require('cookie-parser')
+const cors = require('cors')
+const Cookies = require('universal-cookie')
 const jwt = require('jsonwebtoken');
 
 
@@ -15,39 +18,78 @@ app.set('views', path.join(__dirname, 'public'));			//APONTA AS VIEWS PARA PASTA
 app.engine('html', require('ejs').renderFile);				//DEFININDO HTML PARA USO COM EXTENSÃO EJS
 app.set('view engine', 'ejs');
 app.use(express.json());
+app.use(cookieParser());
 app.use(express.urlencoded({ extended: false }));
+
+/*const cookie = new Cookies()
+cookie.set('token', token, { path: '/' });
+console.log(cookie.get('token'))*/
+
+
+
 /*----------------------------------------------------------------------------------------------*/
 /* EXTRAI O MODEL DE USUARIO */
 const db = require('./db');
 const Users = db.Mongoose.model('users', db.UserSchema, 'users');
 
+
+								/*****GETS*****/
 /*----------------------------------------------------------------------------------------------*/
 /* GET home page. */
-app.get('/', async (req, res) => {
-	const db = require('./db');
-	const Users = db.Mongoose.model('users', db.UserSchema, 'users');
+/*----------------------------------------------------------------------------------------------*/
+//MIDDLEWARE DE VERIFICAÇÃO DO TOKEN
+function verificaToken(req, res, next) {
 
-	const docs = await Users.find({}).lean().exec();
+	const token = req.cookies['x-access-token'];
+	console.log(token)
+
+
+	if (!token) return res.status(404).json({ msg: "Sem permissão" })
+
+	jwt.verify(token, process.env.SECRET, function (err, decoded) {
+		if (err) return res.status(404).json({ msg: "Algo de errado com o token" })
+
+		let userId = decoded.id
+		console.log(userId)
+
+		next()
+	})
+}
+
+/*----------------------------------------------------------------------------------------------*/
+/* GET HOME PAGE */
+/*----------------------------------------------------------------------------------------------*/
+app.get('/', verificaToken, async (req, res, next) => {
+	const token = req.cookies['x-access-token']
+	const decodedId = jwt.verify(token, process.env.SECRET)
+	const userId = decodedId.id
+
+	const docs = await Users.findById( userId ).lean().exec();
 	res.render('index', { docs });
+
 });
 
 /*----------------------------------------------------------------------------------------------*/
 /* GET Login page. */
-
+/*----------------------------------------------------------------------------------------------*/
 app.get('/login', (req, res) => {
 	res.render('login');
 })
 
 /*----------------------------------------------------------------------------------------------*/
 /* GET Cadastro page. */
-
+/*----------------------------------------------------------------------------------------------*/
 app.get('/cadastro', (req, res) => {
 	res.render('cadastro', { title: 'Cadastro de usuário: chat Serramar' })
 });
+/*----------------------------------------------------------------------------------------------*/
 
-app.get('/:id', verificaToken, async (req, res) => {
+/*----------------------------------------------------------------------------------------------*/
+/* GET login-ID page. */
+/*----------------------------------------------------------------------------------------------*/
+
+/*app.get('/:id', verificaToken, async (req, res) => {
 	const id = req.params.id
-
 
 	try {
 		//VERIFICAR SE O USUARIO EXISTE
@@ -61,16 +103,12 @@ app.get('/:id', verificaToken, async (req, res) => {
 	} catch (err) {
 		console.log(err)
 	}
-})
+})*/
 
-function verificaToken(req, res, next) {
-	const authHeader = req.headers['authorization']
-	const token = authHeader && authHeader.split(' ')[1]
 
-	if (!token) {
-		return res.status(401).json({ msg: 'Acesso negado!!' })
-	}
-}
+
+/*----------------------------------------------------------------------------------------------*/
+								/*****POSTS******/
 /*----------------------------------------------------------------------------------------------*/
 /*POST CADASTRO PAGE*/
 
@@ -142,14 +180,27 @@ app.post('/login', async (req, res) => {
 	//CRIA O TOKEN SE O LOGIN RETORNAR 200-OK
 	try {
 		const secret = process.env.SECRET
-		const token = jwt.sign({ id: user._id, }, secret)
+		const token = jwt.sign({ id: user._id }, secret)
 
-		res.status(200).json({ msg: 'Usuario autenticado com sucesso', token })
+		let atributos_cookie = {
+			path: "/",
+			sameSite: true,
+			maxAge: 900000,
+			httpOnly: true
+		}
 
+		res.cookie('x-access-token', token, atributos_cookie)
 	} catch (err) {
-		console.log(err)
-	}
+		return res.send('falha')
+    }
+	//const cookie =  new Cookies(req.headers.cookie)
+	//console.log(cookie)
+
+	res.status(200).redirect( "/" )
+
 })
+
+
 
 
 let messages = [];

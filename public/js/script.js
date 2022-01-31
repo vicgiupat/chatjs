@@ -11,9 +11,12 @@
 }
 	$('.messages')
 
-	/*function move_up() {
-	document.getElementById('#messages').scrollTop += 10;
-	}*/
+function move_up() {
+	var chat = document.getElementById('messages')
+	chat.scrollTop = chat.scrollHeight - chat.clientHeight
+
+	move_up()
+	}
 
 	socket.on('previousMessage', function(message){
 		for(message of message){
@@ -80,4 +83,3 @@
 			$('#input_message').val('');				//LIMPA INPUT DE MENSAGENS ASSIM QUE ÚMA É ENVIADA
 		}    	
 	});
-
